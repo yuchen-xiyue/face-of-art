@@ -1,4 +1,5 @@
 import argphase
+from einops import einsum
 
 def closed_regions(points, canvas_size): 
     """_summary_
@@ -35,9 +36,16 @@ def closed_regions(points, canvas_size):
     else: raise Exception
     points = np.array(points)
 
-    coord = np.meshgrid(np.arrange(height), np.arrange(width))
+    coord = np.meshgrid(np.arrange(H), np.arrange(W))
     dist = coord[None, :, :, :] - points[:, None, None, :]
-    prod = np.einsum('nhwp,np->nhw', dist, points)
+    prod = einsum('n h w vector, n vector -> n h w', dist, points)
+    prod[prod > 0] = 1
+    prod[prod < 0] = 0
+    prod = einsum('n h w -> h w', prod)
+    prod[prod != N] = 0
+    prod[prod == N] = 1
+
+    region_map = prod
 
 
 
